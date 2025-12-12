@@ -1,19 +1,27 @@
-- name: docker build and push
-  hosts: local  # Replace with the hostname or IP address of your target server
-  become: yes  # Run tasks with sudo privileges
+- name: Docker build and push
+  hosts: local  # Replace with your actual host or group
+  become: yes  # Run tasks with sudo
 
   tasks:
-    - name: Update apt package cache
-      apt:
-        update_cache: yes   
+    # Add Kubernetes GPG key first
+    - name: Add Kubernetes GPG key
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        keyring: /etc/apt/trusted.gpg.d/k8s.gpg
 
-    - name: Build Docker Image
+    # Update apt cache after adding the key
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    # Docker build
+    - name: Build Docker image
       command: docker build -t petstore .
       args:
         chdir: /var/lib/jenkins/workspace/petstore
 
-    - name: tag image
-      command: docker tag petstore:latest niklearn1414/petstore:latest 
+    - name: Tag image
+      command: docker tag petstore:latest niklearn1414/petstore:latest
 
     - name: Log in to Docker Hub
       community.docker.docker_login:
